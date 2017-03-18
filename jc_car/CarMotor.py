@@ -37,38 +37,39 @@ GPIO.setup(coil_B_2_pin, GPIO.OUT)
 GPIO.output(enable_a, True)
 GPIO.output(enable_b, True)
 
-tspeedpwm = GPIO.PWM(enable_a, 50)
-tspeedpwm.start(20)
+tspeedpwm = GPIO.PWM(enable_a, 100)
 
-speedpwm = GPIO.PWM(enable_b, 20)
-speedpwm.start(20)
+speedpwm = GPIO.PWM(enable_b, 100)
+speedpwm.start(50)
 
 # Function for step sequence
 def tsetStep(w1, w2):
     GPIO.output(coil_A_1_pin, w1)
     GPIO.output(coil_A_2_pin, w2)
 
-# Right
-tsetStep(1,0)
-time.sleep(1)
-
-# speedpwm.start(80)
-# Left
-tsetStep(0,1)
-time.sleep(1)
-
-# print "STOP"
-
 def setStep(w1, w2):
     GPIO.output(coil_B_1_pin, w1)
     GPIO.output(coil_B_2_pin, w2)
 
-# Back
-setStep(1,0)
-time.sleep(15)
 # Front
 setStep(0,1)
-time.sleep(5)
+
+tspeedpwm.start(50)
+
+for i in range(1,3):
+    # Left
+    tsetStep(1,0)
+    time.sleep(2)
+    
+    tspeedpwm.start(100)
+    
+    # Right
+    tsetStep(0,1)
+    time.sleep(3)
+
+# Back
+#setStep(1,0)
+#time.sleep(2)
 
 
 # def setStep(w1, w2, w3, w4):
