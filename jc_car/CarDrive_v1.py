@@ -19,10 +19,10 @@ trig_pin = 25
 echo_pin = 12
 
 # Set pin states
-GPIO.setup(enable_a, GPIO.OUT)
+#GPIO.setup(enable_a, GPIO.OUT)
 GPIO.setup(enable_b, GPIO.OUT)
-GPIO.setup(coil_A_1_pin, GPIO.OUT)
-GPIO.setup(coil_A_2_pin, GPIO.OUT)
+#GPIO.setup(coil_A_1_pin, GPIO.OUT)
+#GPIO.setup(coil_A_2_pin, GPIO.OUT)
 GPIO.setup(coil_B_1_pin, GPIO.OUT)
 GPIO.setup(coil_B_2_pin, GPIO.OUT)
 GPIO.setup(trig_pin, GPIO.OUT)
@@ -30,11 +30,11 @@ GPIO.setup(echo_pin, GPIO.IN)
 
 # Set ENA and ENB to high to enable stepper
 
-GPIO.output(enable_a, True)
+#GPIO.output(enable_a, True)
 GPIO.output(enable_b, True)
 
 # Set PWM for turing and speed motors
-tspeedpwm = GPIO.PWM(enable_a, 100)
+#tspeedpwm = GPIO.PWM(enable_a, 100)
 speedpwm = GPIO.PWM(enable_b, 100)
 
 # Set Trigger to low and wait for Sensor to settle
@@ -44,9 +44,9 @@ time.sleep(2)
 speedpwm.start(50)
 
 # Function for step sequence
-def tsetStep(w1, w2):
-    GPIO.output(coil_A_1_pin, w1)
-    GPIO.output(coil_A_2_pin, w2)
+#def tsetStep(w1, w2):
+    #GPIO.output(coil_A_1_pin, w1)
+    #GPIO.output(coil_A_2_pin, w2)
 
 def setStep(w1, w2):
     GPIO.output(coil_B_1_pin, w1)
@@ -70,17 +70,20 @@ while True:
     distance = round(pulse_duration * 17150,2)
     print "Distance ",i," : ",distance,"cm"
 
-    if i=100
+    if i==25:
         break
 
-    if distance <= 10.00
+    if distance <= 15:
         setStep(0,0)
+        print "In distance <=15 if statement :",i
         continue
-    else
+    else:
         setStep(0,1)
-        time.sleep(2)
+        time.sleep(0.2)
+        print "In distance <=15 else statement :",i
+        continue
 
-GPIO.output(enable_a, False)
+#GPIO.output(enable_a, False)
 GPIO.output(enable_b, False)
 speedpwm.stop()
 
