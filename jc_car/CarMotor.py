@@ -56,16 +56,16 @@ setStep(0,1)
 
 tspeedpwm.start(50)
 
-for i in range(1,3):
+for i in range(1,6):
     # Left
     tsetStep(1,0)
-    time.sleep(2)
+    time.sleep(1)
     
     tspeedpwm.start(100)
     
     # Right
     tsetStep(0,1)
-    time.sleep(3)
+    time.sleep(1)
 
 # Back
 #setStep(1,0)
