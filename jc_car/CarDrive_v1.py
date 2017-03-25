@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 
 GPIO.setmode(GPIO.BCM)
-#GPIO.setwarnings(False)
+GPIO.setwarnings(False)
 
 # Enable GPIO pins for  ENA and ENB for stepper
 # a Green, A1 Dark Blue, A2 Purple - Turning
@@ -35,7 +35,7 @@ GPIO.setup(echo_pin, GPIO.IN)
 
 # Set PWM for turing and speed motors
 #tspeedpwm = GPIO.PWM(enable_a, 100)
-speedpwm = GPIO.PWM(enable_b, 100)
+speedpwm = GPIO.PWM(enable_b, 300)
 
 # Set Trigger to low and wait for Sensor to settle
 GPIO.output(trig_pin, False)
@@ -69,12 +69,14 @@ while i<=100:
     print "Distance ",i," : ",distance,"cm"
 
     if distance <= 30.0:
+        setStep(1,0)
+        time.sleep(0.02)
         speedpwm.stop()
-        time.sleep(0.05)
+        time.sleep(0.02)
         print "In distance <=30 if statement :",i
     else:
         time.sleep(0.5)
-        speedpwm.start(60)
+        speedpwm.start(40)
         setStep(0,1)
         time.sleep(0.05)
         print "In distance > 30 else statement :",i
