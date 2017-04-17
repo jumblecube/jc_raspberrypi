@@ -1,44 +1,95 @@
-#Car Distance Sensor
-import RPi.GPIO as GPIO
+# import the necessary packages
+from __future__ import division, print_function, absolute_import
+
+import tflearn
+from tflearn.data_utils import shuffle
+from tflearn.layers.core import input_data, dropout, fully_connected
+from tflearn.layers.conv import conv_2d, max_pool_2d
+from tflearn.layers.estimator import regression
+from tflearn.data_preprocessing import ImagePreprocessing
+from tflearn.data_augmentation import ImageAugmentation
+import scipy
+import numpy as np
+import tensorflow as tf
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import time
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
+# initialize the camera and grab a reference to the raw camera capture
+camera = PiCamera()
+camera.resolution = (128, 128)
+camera.framerate = 32
+rawCapture = PiRGBArray(camera, size=(128, 128))
+# allow the camera to warmup
+time.sleep(0.1)
 
-trig_pin = 25
-echo_pin = 12
 
-print "Distance Measurement in Progress"
+def load_model():
+    img_prep = ImagePreprocessing()
+    img_prep.add_featurewise_zero_center()
+    img_prep.add_featurewise_stdnorm()
+    img_aug = ImageAugmentation()
+    img_aug.add_random_flip_leftright()
+    img_aug.add_random_rotation(max_angle=25.)
+    img_aug.add_random_blur(sigma_max=3.)
 
-GPIO.setup(trig_pin, GPIO.OUT)
-GPIO.setup(echo_pin, GPIO.IN)
+    input_layer = input_data(shape=[None, 32, 32, 3],
+                             data_preprocessing=img_prep,
+                             data_augmentation=img_aug, name='input')
+    # Step 1: Convolution
+    conv2d_l1 = conv_2d(input_layer, 120, 5,
+                        activation='relu', name='conv2d_l1')
+    # Step 2: Max pooling
+    max_pool_l1 = max_pool_2d(conv2d_l1, 2, name='max_pool_l1')
+    # Step 3: Convolution again
+    conv2d_l2 = conv_2d(max_pool_l1, 150, 3,
+                        activation='relu', name='conv2d_l2')
+    # Step 4: Max pooling
+    max_pool_l2 = max_pool_2d(conv2d_l2, 2, name='max_pool_l2')
+    # Step 5: Convolution yet again
+    conv2d_l3 = conv_2d(max_pool_l2, 250, 3,
+                        activation='relu', name='conv2d_l3')
+    # Step 6: Max pooling again
+    max_pool_l3 = max_pool_2d(conv2d_l3, 2, name='max_pool_l3')
+    # Step 7: Dropout - throw away some data randomly to prevent over-fitting
+    dropout_1 = dropout(max_pool_l3, 0.5)
+    # Step 8: Fully-connected 300 node neural network
+    dense_1 = fully_connected(dropout_1, 300,
+                              activation='tanh', name='dense_1')
+    # Step 9: Dropout - throw away some data randomly to prevent over-fitting
+    dropout_2 = dropout(dense_1, 0.5)
+    # Step 8: Fully-connected neural network with two outputs
+    dense_2 = fully_connected(dropout_2, 43,
+                              activation='softmax', name='dense_2')
+    # Tell tflearn how we want to train the network
+    network = regression(dense_2, optimizer='adam',
+                         loss='categorical_crossentropy',
+                         learning_rate=0.001, name='target')
+    # Wrap the network in a model object
+    model = tflearn.DNN(network, tensorboard_verbose=0)
+    model.load("sign-classifier.tfl")
+    time.sleep(0.1)
+    return model
 
-GPIO.output(trig_pin, False)
-print "Waiting for Sensor to settle"
-time.sleep(2)
 
-for i in range (0,5):
-    GPIO.output(trig_pin, True)
-    time.sleep(0.00001)
-    GPIO.output(trig_pin, False)
+def process_image(img, model):
+    img = scipy.misc.imresize(img, (32, 32),
+                              interp="bicubic").astype(np.float32,
+                                                       casting='unsafe')
+    prediction = model.predict([img])
+    return np.argmax(prediction)+1
 
-    while GPIO.input(echo_pin)==0:
-        pulse_start = time.time()
-        #print "pulse_start : ",pulse_start
 
-    while GPIO.input(echo_pin)==1:
-        pulse_end = time.time()
-        #print "pulse_end : ",pulse_end
+model = load_model()
 
-    pulse_duration = pulse_end - pulse_start
-
-    #print "pulse_duration : ",pulse_duration
-
-    distance = round(pulse_duration * 17150,2)
-
-    print "Distance ",i," : ",distance,"cm"
-
-    time.sleep(3)
-
-GPIO.cleanup()
-    
+i = 0
+# capture frames from the camera
+for frame in camera.capture_continuous(rawCapture,
+                                       format="rgb", use_video_port=True):
+    image = frame.array
+    predict_img = process_image(image, model)
+    print('Image classified as ', predict_img, 'in Iteration ', i)
+    rawCapture.truncate(0)
+    i = i + 1
+    if i > 100:
+        break
