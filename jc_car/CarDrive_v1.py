@@ -35,7 +35,7 @@ GPIO.setup(echo_pin, GPIO.IN)
 
 # Set PWM for turing and speed motors
 #tspeedpwm = GPIO.PWM(enable_a, 100)
-speedpwm = GPIO.PWM(enable_b, 300)
+speedpwm = GPIO.PWM(enable_b, 250)
 
 # Set Trigger to low and wait for Sensor to settle
 GPIO.output(trig_pin, False)
@@ -78,7 +78,7 @@ while i<=100:
         time.sleep(0.5)
         speedpwm.start(40)
         setStep(0,1)
-        time.sleep(0.05)
+        time.sleep(0.1)
         print "In distance > 30 else statement :",i
 
 #GPIO.output(enable_a, False)

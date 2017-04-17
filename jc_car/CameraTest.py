@@ -10,16 +10,25 @@ from tflearn.data_preprocessing import ImagePreprocessing
 from tflearn.data_augmentation import ImageAugmentation
 import scipy
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
 from picamera.array import PiRGBArray
 from picamera import PiCamera
 import time
 
 # initialize the camera and grab a reference to the raw camera capture
 camera = PiCamera()
-camera.resolution = (128, 128)
-camera.framerate = 32
-rawCapture = PiRGBArray(camera, size=(128, 128))
+camera.resolution = (640, 480)
+camera.framerate = 15
+camera.rotation = 180
+camera.brightness = 60
+camera.contrast = 60
+camera.awb_mode = 'off'
+camera.awb_gains = [1.2, 1.8]
+#camera.start_preview()
+#camera.capture('/home/pi/Documents/jumblecube_repo/jc_car/CameraImage/Image2.jpg')
+#time.sleep(0.05)
+#camera.stop_preview()
+rawCapture = PiRGBArray(camera, size=(640, 480))
 # allow the camera to warmup
 time.sleep(0.1)
 
@@ -93,5 +102,5 @@ for frame in camera.capture_continuous(rawCapture,
           ' time ', (time.time()-start))
     rawCapture.truncate(0)
     i = i + 1
-    if i > 100:
+    if i > 50:
         break
