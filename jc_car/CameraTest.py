@@ -86,9 +86,11 @@ i = 0
 # capture frames from the camera
 for frame in camera.capture_continuous(rawCapture,
                                        format="rgb", use_video_port=True):
+    start = time.time()
     image = frame.array
     predict_img = process_image(image, model)
-    print('Image classified as ', predict_img, 'in Iteration ', i)
+    print('Image classified as ', predict_img, 'in ', i,
+          ' time ', (time.time()-start))
     rawCapture.truncate(0)
     i = i + 1
     if i > 100:
